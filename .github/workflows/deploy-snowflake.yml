@@ -1,0 +1,53 @@
+name: Deploy Snowflake SQL
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "sql/**"
+      - ".github/workflows/deploy-snowflake.yml"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install and configure Snowflake CLI
+        uses: snowflakedb/snowflake-cli-action@v2
+        with:
+          use-oidc: true
+          cli-version: "3.16"
+
+      - name: Verify Snowflake connection
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: GITHUB_CICD_USER
+          SNOWFLAKE_ROLE: ROLE_CICD_DEPLOYER
+          SNOWFLAKE_WAREHOUSE: WH_CICD
+          SNOWFLAKE_DATABASE: DB_DEV
+        run: |
+          snow sql -q "SELECT CURRENT_ACCOUNT(), CURRENT_USER(), CURRENT_ROLE(), CURRENT_WAREHOUSE();" -x
+
+      - name: Deploy SQL files in order
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: GITHUB_CICD_USER
+          SNOWFLAKE_ROLE: ROLE_CICD_DEPLOYER
+          SNOWFLAKE_WAREHOUSE: WH_CICD
+          SNOWFLAKE_DATABASE: DB_DEV
+        run: |
+          set -euo pipefail
+          for file in $(ls sql/*.sql | sort); do
+            echo "Running $file"
+            snow sql -f "$file" -x --enhanced-exit-codes
+          done
