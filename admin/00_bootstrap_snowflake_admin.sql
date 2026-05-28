@@ -11,7 +11,7 @@ CREATE USER IF NOT EXISTS GITHUB_CICD_USER
   WORKLOAD_IDENTITY = (
     TYPE = OIDC
     ISSUER = 'https://token.actions.githubusercontent.com'
-    SUBJECT = 'repo:TU_USUARIO_O_ORG/TU_REPO:ref:refs/heads/main'
+    SUBJECT = 'SUBJECT = 'repo:jarohash/snowflake-cicd-project:ref:refs/heads/main''
   )
   DEFAULT_ROLE = ROLE_CICD_DEPLOYER;
 
