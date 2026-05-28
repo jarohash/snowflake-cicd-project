@@ -1,0 +1,12 @@
+# Secrets and local configs
+.env
+*.pem
+*.key
+config.toml
+connections.toml
+.snowflake/
+
+# OS / editor
+.DS_Store
+.vscode/
+__pycache__/
